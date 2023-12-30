@@ -18,6 +18,7 @@ import io
 
 import yaml
 
+from yamllint import decoder
 from yamllint import parser
 
 
@@ -188,6 +189,8 @@ def get_syntax_error(buffer):
 def _run(buffer, conf, filepath):
     assert hasattr(buffer, '__getitem__'), \
         '_run() argument must be a buffer, not a stream'
+    if isinstance(buffer, bytes):
+        buffer = decoder.auto_decode(buffer)
 
     first_line = next(parser.line_generator(buffer)).content
     if re.match(r'^#\s*yamllint disable-file\s*$', first_line):
