@@ -14,11 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import codecs
+import itertools
 import unittest
 
 from tests.common import (register_test_codecs, unregister_test_codecs,
                           utf_codecs, encoding_detectable, uses_bom,
-                          is_test_codec, test_codec_built_in_equivalent)
+                          is_test_codec, test_codec_built_in_equivalent,
+                          temp_workspace, ws_with_files_in_many_codecs)
 
 from yamllint import decoder
 
@@ -219,3 +221,27 @@ class DecoderTestCase(unittest.TestCase):
             at_least_one_decode_error,
             msg="None of the test_strings triggered a decoding error."
         )
+
+    def perform_lines_in_file_test(self, strings):
+        workspace = ws_with_files_in_many_codecs('{}', '\n'.join(strings))
+        with temp_workspace(workspace):
+            iterable = zip(
+                itertools.cycle(strings),
+                decoder.lines_in_files(workspace.keys())
+            )
+            for item in iterable:
+                self.assertEqual(item[0], item[1])
+
+    def test_lines_in_file(self):
+        self.perform_lines_in_file_test((
+            "YAML",
+            "ⓎⒶⓂⓁ",
+            "🅨🅐🅜🅛",
+            "ＹＡＭＬ"
+        ))
+        self.perform_lines_in_file_test((
+            "𝐘𝐀𝐌𝐋",
+            "𝖄𝕬𝕸𝕷",
+            "𝒀𝑨𝑴𝑳",
+            "𝓨𝓐𝓜𝓛"
+        ))

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import itertools
 from io import StringIO
 import os
 import shutil
@@ -21,6 +22,7 @@ import tempfile
 import unittest
 
 from tests.common import build_temp_workspace
+from tests.common import register_test_codecs, unregister_test_codecs
 
 from yamllint.config import YamlLintConfigError
 from yamllint import cli
@@ -774,3 +776,44 @@ class IgnoreConfigTestCase(unittest.TestCase):
             './s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:4:17: ' + trailing,
             './s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:5:5: ' + hyphen,
         )))
+
+    def create_ignore_file(self, text, codec):
+        path = os.path.join(self.wd, f'{codec}.ignore')
+        with open(path, 'wb') as f:
+            f.write(text.encode(codec))
+        self.addCleanup(lambda: os.remove(path))
+        return path
+
+    def test_ignored_from_file_with_multiple_encodings(self):
+        register_test_codecs()
+        self.addCleanup(unregister_test_codecs)
+
+        ignore_files = itertools.starmap(
+            self.create_ignore_file, (
+                ('bin/file.lint-me-anyway.yaml\n', 'utf_32_be'),
+                ('bin/file.yaml\n', 'utf_32_be_sig'),
+                ('file-at-root.yaml\n', 'utf_32_le'),
+                ('file.dont-lint-me.yaml\n', 'utf_32_le_sig'),
+
+                ('ign-dup/file.yaml\n', 'utf_16_be'),
+                ('ign-dup/sub/dir/file.yaml\n', 'utf_16_be_sig'),
+                ('ign-trail/file.yaml\n', 'utf_16_le'),
+                ('include/ign-dup/sub/dir/file.yaml\n', 'utf_16_le_sig'),
+
+                ('s/s/ign-trail/file.yaml\n', 'utf_8'),
+                (
+                    's/s/ign-trail/s/s/file.yaml\n'
+                    's/s/ign-trail/s/s/file2.lint-me-anyway.yaml\n'
+                    '.yamllint\n',
+
+                    'utf_8_sig'
+                ),
+            )
+        )
+        conf = ('---\n'
+                'extends: default\n'
+                f'ignore-from-file: [{", ".join(ignore_files)}]\n')
+
+        with self.assertRaises(SystemExit) as cm:
+            cli.run(('-d', conf, '.'))
+        self.assertEqual(cm.exception.code, 0)

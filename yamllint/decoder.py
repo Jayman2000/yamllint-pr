@@ -58,3 +58,12 @@ def auto_decode(stream_data, errors='strict'):
         encoding=detect_encoding(stream_data),
         errors=errors
     )
+
+
+def lines_in_files(paths):
+    """Autodecodes files and yields their lines."""
+    for path in paths:
+        with open(path, 'rb') as file:
+            text = auto_decode(file.read())
+        for line in text.splitlines():
+            yield line
