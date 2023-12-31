@@ -257,7 +257,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(len(new.enabled_rules(None)), 2)
 
     def test_extend_on_file(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('rules:\n'
                     '  colons:\n'
                     '    max-spaces-before: 0\n'
@@ -276,7 +276,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(len(c.enabled_rules(None)), 2)
 
     def test_extend_remove_rule(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('rules:\n'
                     '  colons:\n'
                     '    max-spaces-before: 0\n'
@@ -295,7 +295,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(len(c.enabled_rules(None)), 1)
 
     def test_extend_edit_rule(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('rules:\n'
                     '  colons:\n'
                     '    max-spaces-before: 0\n'
@@ -317,7 +317,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(len(c.enabled_rules(None)), 2)
 
     def test_extend_reenable_rule(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('rules:\n'
                     '  colons:\n'
                     '    max-spaces-before: 0\n'
@@ -337,7 +337,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(len(c.enabled_rules(None)), 2)
 
     def test_extend_recursive_default_values(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('rules:\n'
                     '  braces:\n'
                     '    max-spaces-inside: 1248\n')
@@ -352,7 +352,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(c.rules['braces']['min-spaces-inside-empty'], 2357)
         self.assertEqual(c.rules['braces']['max-spaces-inside-empty'], -1)
 
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('rules:\n'
                     '  colons:\n'
                     '    max-spaces-before: 1337\n')
@@ -364,8 +364,8 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(c.rules['colons']['max-spaces-before'], 1337)
         self.assertEqual(c.rules['colons']['max-spaces-after'], 1)
 
-        with tempfile.NamedTemporaryFile('w') as f1, \
-                tempfile.NamedTemporaryFile('w') as f2:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f1, \
+                tempfile.NamedTemporaryFile('w', encoding='utf_8') as f2:
             f1.write('rules:\n'
                      '  colons:\n'
                      '    max-spaces-before: 1337\n')
@@ -382,7 +382,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(c.rules['colons']['max-spaces-after'], 1)
 
     def test_extended_ignore_str(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('ignore: |\n'
                     '  *.template.yaml\n')
             f.flush()
@@ -392,7 +392,7 @@ class ExtendedConfigTestCase(unittest.TestCase):
         self.assertEqual(c.ignore.match_file('test.yaml'), False)
 
     def test_extended_ignore_list(self):
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             f.write('ignore:\n'
                     '  - "*.template.yaml"\n')
             f.flush()
@@ -562,7 +562,8 @@ class IgnoreConfigTestCase(unittest.TestCase):
         )))
 
     def test_run_with_ignore_str(self):
-        with open(os.path.join(self.wd, '.yamllint'), 'w') as f:
+        path = os.path.join(self.wd, '.yamllint')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('extends: default\n'
                     'ignore: |\n'
                     '  *.dont-lint-me.yaml\n'
@@ -616,7 +617,8 @@ class IgnoreConfigTestCase(unittest.TestCase):
         )))
 
     def test_run_with_ignore_list(self):
-        with open(os.path.join(self.wd, '.yamllint'), 'w') as f:
+        path = os.path.join(self.wd, '.yamllint')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('extends: default\n'
                     'ignore:\n'
                     '  - "*.dont-lint-me.yaml"\n'
@@ -670,19 +672,22 @@ class IgnoreConfigTestCase(unittest.TestCase):
         )))
 
     def test_run_with_ignore_from_file(self):
-        with open(os.path.join(self.wd, '.yamllint'), 'w') as f:
+        path = os.path.join(self.wd, '.yamllint')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('extends: default\n'
                     'ignore-from-file: .gitignore\n'
                     'rules:\n'
                     '  key-duplicates:\n'
                     '    ignore-from-file: .ignore-key-duplicates\n')
 
-        with open(os.path.join(self.wd, '.gitignore'), 'w') as f:
+        path = os.path.join(self.wd, '.gitignore')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('*.dont-lint-me.yaml\n'
                     '/bin/\n'
                     '!/bin/*.lint-me-anyway.yaml\n')
 
-        with open(os.path.join(self.wd, '.ignore-key-duplicates'), 'w') as f:
+        path = os.path.join(self.wd, '.ignore-key-duplicates')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('/ign-dup\n')
 
         sys.stdout = StringIO()
@@ -727,13 +732,16 @@ class IgnoreConfigTestCase(unittest.TestCase):
         )))
 
     def test_run_with_ignored_from_file(self):
-        with open(os.path.join(self.wd, '.yamllint'), 'w') as f:
+        path = os.path.join(self.wd, '.yamllint')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('ignore-from-file: [.gitignore, .yamlignore]\n'
                     'extends: default\n')
-        with open(os.path.join(self.wd, '.gitignore'), 'w') as f:
+        path = os.path.join(self.wd, '.gitignore')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('*.dont-lint-me.yaml\n'
                     '/bin/\n')
-        with open(os.path.join(self.wd, '.yamlignore'), 'w') as f:
+        path = os.path.join(self.wd, '.yamlignore')
+        with open(path, 'w', encoding='utf_8') as f:
             f.write('!/bin/*.lint-me-anyway.yaml\n')
 
         sys.stdout = StringIO()
