@@ -304,14 +304,14 @@ class CommandLineTestCase(unittest.TestCase):
             (ctx.returncode, ctx.stdout, ctx.stderr), (0, expected_out, ''))
 
     def test_run_with_config_file(self):
-        with open(os.path.join(self.wd, 'config'), 'w') as f:
+        with open(os.path.join(self.wd, 'config'), 'w', encoding='utf_8') as f:
             f.write('rules: {trailing-spaces: disable}')
 
         with RunContext(self) as ctx:
             cli.run(('-c', f.name, os.path.join(self.wd, 'a.yaml')))
         self.assertEqual(ctx.returncode, 0)
 
-        with open(os.path.join(self.wd, 'config'), 'w') as f:
+        with open(os.path.join(self.wd, 'config'), 'w', encoding='utf_8') as f:
             f.write('rules: {trailing-spaces: enable}')
 
         with RunContext(self) as ctx:
@@ -327,14 +327,14 @@ class CommandLineTestCase(unittest.TestCase):
         self.addCleanup(os.environ.__delitem__, 'HOME')
         os.environ['HOME'] = home
 
-        with open(config, 'w') as f:
+        with open(config, 'w', encoding='utf_8') as f:
             f.write('rules: {trailing-spaces: disable}')
 
         with RunContext(self) as ctx:
             cli.run((os.path.join(self.wd, 'a.yaml'), ))
         self.assertEqual(ctx.returncode, 0)
 
-        with open(config, 'w') as f:
+        with open(config, 'w', encoding='utf_8') as f:
             f.write('rules: {trailing-spaces: enable}')
 
         with RunContext(self) as ctx:
@@ -347,7 +347,8 @@ class CommandLineTestCase(unittest.TestCase):
         with tempfile.TemporaryDirectory('w') as d:
             os.environ['XDG_CONFIG_HOME'] = d
             os.makedirs(os.path.join(d, 'yamllint'))
-            with open(os.path.join(d, 'yamllint', 'config'), 'w') as f:
+            path = os.path.join(d, 'yamllint', 'config')
+            with open(path, 'w', encoding='utf_8') as f:
                 f.write('extends: relaxed')
             with RunContext(self) as ctx:
                 cli.run(('-f', 'parsable', os.path.join(self.wd, 'warn.yaml')))
@@ -357,7 +358,7 @@ class CommandLineTestCase(unittest.TestCase):
     def test_run_with_user_yamllint_config_file_in_env(self):
         self.addCleanup(os.environ.__delitem__, 'YAMLLINT_CONFIG_FILE')
 
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             os.environ['YAMLLINT_CONFIG_FILE'] = f.name
             f.write('rules: {trailing-spaces: disable}')
             f.flush()
@@ -365,7 +366,7 @@ class CommandLineTestCase(unittest.TestCase):
                 cli.run((os.path.join(self.wd, 'a.yaml'), ))
             self.assertEqual(ctx.returncode, 0)
 
-        with tempfile.NamedTemporaryFile('w') as f:
+        with tempfile.NamedTemporaryFile('w', encoding='utf_8') as f:
             os.environ['YAMLLINT_CONFIG_FILE'] = f.name
             f.write('rules: {trailing-spaces: enable}')
             f.flush()
@@ -509,7 +510,11 @@ class CommandLineTestCase(unittest.TestCase):
         # Create a pseudo-TTY and redirect stdout to it
         old_stdout = sys.stdout
         master, slave = pty.openpty()
-        sys.stdout = os.fdopen(slave, 'w')
+        sys.stdout = os.fdopen(
+            slave,
+            'w',
+            encoding=os.device_encoding(slave)
+        )
 
         with self.assertRaises(SystemExit) as ctx:
             cli.run((path, ))
@@ -518,7 +523,7 @@ class CommandLineTestCase(unittest.TestCase):
         self.assertEqual(ctx.exception.code, 1)
 
         # Read output from TTY
-        output = os.fdopen(master, 'r')
+        output = os.fdopen(master, 'r', encoding=os.device_encoding(master))
         os.set_blocking(master, False)
 
         out = output.read().replace('\r\n', '\n')
